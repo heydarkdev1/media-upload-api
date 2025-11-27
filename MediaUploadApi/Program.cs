@@ -1,24 +1,44 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Identity.Web;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add controllers
-builder.Services.AddControllers();
+// ----------------------------------------------------------
+// 1. Add Azure AD Authentication
+// ----------------------------------------------------------
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
-// Add Authentication + Authorization (Azure AD JWT handling)
-builder.Services.AddAuthentication();
+// ----------------------------------------------------------
+// 2. Add Authorization
+// ----------------------------------------------------------
 builder.Services.AddAuthorization();
 
-// Allow upload streaming (important for large uploads)
-builder.WebHost.ConfigureKestrel(o =>
+// ----------------------------------------------------------
+// 3. Add Controllers
+// ----------------------------------------------------------
+builder.Services.AddControllers();
+
+// ----------------------------------------------------------
+// 4. Allow large file upload (Kestrel)
+// ----------------------------------------------------------
+builder.WebHost.ConfigureKestrel(options =>
 {
-    o.Limits.MaxRequestBodySize = long.MaxValue;
+    options.Limits.MaxRequestBodySize = long.MaxValue;
 });
 
 var app = builder.Build();
 
-app.UseAuthentication();   // ?? REQUIRED
-app.UseAuthorization();    // ?? REQUIRED
+// ----------------------------------------------------------
+// 5. Enable Authentication + Authorization (ORDER MATTERS)
+// ----------------------------------------------------------
+app.UseAuthentication();
+app.UseAuthorization();
 
-// Map API controllers
+// ----------------------------------------------------------
+// 6. Map Controllers
+// ----------------------------------------------------------
 app.MapControllers();
 
 app.Run();
