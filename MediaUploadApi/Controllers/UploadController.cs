@@ -1,6 +1,7 @@
 ﻿using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MediaUploadApi.Controllers
@@ -29,7 +30,7 @@ namespace MediaUploadApi.Controllers
         }
 
         // ---------------------------------------------------------
-        // SIMPLE TEST ENDPOINT — CONFIRM API IS RUNNING
+        // SIMPLE TEST ENDPOINT — PUBLIC
         // ---------------------------------------------------------
         [HttpGet("ping")]
         public IActionResult Ping()
@@ -38,7 +39,17 @@ namespace MediaUploadApi.Controllers
         }
 
         // ---------------------------------------------------------
-        // FILE UPLOAD ENDPOINT (FORM-DATA)
+        // **SECURE ENDPOINT — REQUIRES AZURE AD LOGIN**
+        // ---------------------------------------------------------
+        [Authorize]
+        [HttpGet("secure-ping")]
+        public IActionResult SecurePing()
+        {
+            return Ok("Secure API is working - You are authenticated with Azure AD");
+        }
+
+        // ---------------------------------------------------------
+        // FILE UPLOAD ENDPOINT (PUBLIC)
         // ---------------------------------------------------------
         [HttpPost("upload")]
         public async Task<IActionResult> Upload(IFormFile file)
